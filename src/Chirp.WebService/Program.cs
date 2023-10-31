@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using DBContext;
-using Chirpin.Startup;
-using Chirpin.Data;
+using Chirp.Startup;
+using Chirp.Data;
 
 /*
     @DESCRIPTION:

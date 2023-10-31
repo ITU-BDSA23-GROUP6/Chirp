@@ -3,42 +3,31 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using DBContext;
 using Chirp.Models;
 using Microsoft.EntityFrameworkCore;
+using Chirp.Interfaces;
+using Chirp.Infrastructure;
 
 namespace Chirp.Razor.Pages;
 
 public class PublicModel : PageModel
 {
-    private readonly DatabaseContext _context;
+    private ICheepRepository cheepRepository;
     public List<Cheep> Cheeps { get; set; } = null!;
     public int totalCheeps;
     public int cheepsPerPage;
 
     public PublicModel(DatabaseContext context)
     {
-        _context = context;
+        cheepRepository = new CheepRepository(context);
+        cheepsPerPage = cheepRepository.CheepsPerPage();
     }
 
-    public IActionResult OnGet([FromQuery] int page)
+    public async Task<IActionResult> OnGet([FromQuery] int page)
     {
-        Cheeps = _context.Cheeps.Include(cheep => cheep.Author).ToList();
+        IEnumerable<Cheep> cheeps = await cheepRepository.GetCheeps(page);
+        Cheeps = cheeps.ToList();
 
-        totalCheeps = Cheeps.Count;
-        cheepsPerPage = 32;
-
-        if (page == 0)
-        {
-            page = 1;
-        }
-
-        if (Cheeps.Count >= page * cheepsPerPage)
-        {
-            Cheeps = Cheeps.GetRange((page - 1) * cheepsPerPage, cheepsPerPage);
-        }
-        else
-        {
-            int cheepsLeft = cheepsPerPage - (page * cheepsPerPage - Cheeps.Count);
-            Cheeps = Cheeps.GetRange((page - 1) * cheepsPerPage, cheepsLeft);
-        }
+        IEnumerable<Cheep> allCheeps = await cheepRepository.GetAllCheeps();
+        totalCheeps = allCheeps.Count();
 
         return Page();
     }

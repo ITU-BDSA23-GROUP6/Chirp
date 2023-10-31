@@ -5,12 +5,11 @@ namespace Chirp.Infrastructure;
 
 public class AuthorRepository : IAuthorRepository
 {
-    private readonly DatabaseContext db;
-    private int cheepsPerPage = 32;
+    private readonly DatabaseContext context;
 
-    public AuthorRepository(DatabaseContext curDB)
+    public AuthorRepository(DatabaseContext _context)
     {
-        db = curDB;
+        context = _context;
     }
 
     public void CreateNewAuthor(Author author)
@@ -18,7 +17,7 @@ public class AuthorRepository : IAuthorRepository
         throw new NotImplementedException();
     }
 
-    public Task<Author> GetAuthorFromName(string name)
+    public Task<Author> GetAuthor(string name)
     {
         throw new NotImplementedException();
     }

@@ -20,7 +20,7 @@ using Microsoft.EntityFrameworkCore;
         - For future reference - OAuth, Cookies and JWT Security [https://fusionauth.io/blog/securing-asp-netcore-razor-pages-app-with-oauth]
 */
 
-namespace Chirpin.Startup
+namespace Chirp.Startup
 {
     public class Startup
     {

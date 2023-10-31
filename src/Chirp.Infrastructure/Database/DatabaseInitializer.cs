@@ -2,7 +2,7 @@ using System;
 using Chirp.Models;
 using DBContext;
 
-namespace Chirpin.Data;
+namespace Chirp.Data;
 public static class DbInitializer
 {
     public static void SeedDatabase(DatabaseContext chirpContext)
