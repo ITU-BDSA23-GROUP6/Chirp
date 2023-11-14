@@ -22,7 +22,7 @@ public class CheepRepository : ICheepRepository
         _authorRepository = authorRepository;
     }
 
-    public int CheepsPerPage() 
+    public int CheepsPerPage()
     {
         return 32;
     }
@@ -36,7 +36,7 @@ public class CheepRepository : ICheepRepository
             .Take(CheepsPerPage())
             .ToListAsync();
     }
-    
+
     public async Task<IEnumerable<Cheep>> GetAllCheeps()
     {
         return await _context.Cheeps
@@ -65,27 +65,67 @@ public class CheepRepository : ICheepRepository
             .ToListAsync();
     }
 
-    public async void CreateCheep(CheepDTO cheepDTO)
+    public async Task CreateCheep(CheepDTO cheepDTO)
     {
-        var author = await _authorRepository.GetAuthorByName(cheepDTO.Author) ?? throw new Exception("Author was NULL");
-        
-        _logger.LogInformation($"[POST] Located author is {author.UserName}");
-
-        Cheep newCheep = new()
+        try
         {
-            Author = author,
-            Text = cheepDTO.Text,
-            TimeStamp = DateTime.UtcNow,
-        };
+            var author = await _authorRepository.GetAuthorByName(cheepDTO.Author) ?? throw new Exception("Author was NULL");
 
-        if(author.Cheeps == null) 
-        {
-            author.Cheeps = new List<Cheep>();
-            _logger.LogInformation("Authors Cheeps was null");
+            _logger.LogInformation($"[POST] Located author is {author.UserName}");
+
+            Cheep newCheep = new()
+            {
+                Author = author,
+                Text = cheepDTO.Text,
+                TimeStamp = DateTime.UtcNow,
+            };
+
+            if (author.Cheeps == null)
+            {
+                author.Cheeps = new List<Cheep>();
+                _logger.LogInformation("Authors Cheeps was null");
+            }
+
+            author.Cheeps.Add(newCheep);
+            _context.Cheeps.Add(newCheep);
+            await _context.SaveChangesAsync();
         }
-
-        author.Cheeps.Add(newCheep);
-        _context.Cheeps.Add(newCheep);
-        _context.SaveChanges();
+        catch (Exception ex)
+        {
+            _logger.LogInformation($"[POST] Error Ocurred: {ex.Message}");
+        }
     }
 }
+
+
+/*    try
+            {
+                chirpContext.Database.OpenConnection(); // Open the connection to the database
+
+                Console.WriteLine("Opening conncetion to Database");
+
+
+                //chirpContext.Database.ExecuteSqlRaw("SET IDENTITY_INSERT [Cheeps] ON");
+
+                int numEntriesWritten = chirpContext.SaveChanges();
+
+                Console.WriteLine("numEntriesWritten: " + numEntriesWritten + ". And saved changes");
+
+                //chirpContext.Database.ExecuteSqlRaw("SET IDENTITY_INSERT [Cheeps] OFF");
+
+                if (numEntriesWritten > 0)
+                {
+                    Console.WriteLine("Changes successfully written to Azure SQL Database");
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("Data base already seeded with data");
+                    return;
+                }
+            }
+            finally
+            {
+                chirpContext.Database.CloseConnection(); // Close the database connection
+            }
+            */

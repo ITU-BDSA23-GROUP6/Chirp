@@ -89,7 +89,7 @@ namespace Chirp.Infrastructure.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("Authors", (string)null);
                 });
 
             modelBuilder.Entity("Chirp.Models.Cheep", b =>

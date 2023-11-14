@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Chirp.Infrastructure.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20231114134521_InitCreate")]
+    [Migration("20231114135937_InitCreate")]
     partial class InitCreate
     {
         /// <inheritdoc />
@@ -92,7 +92,7 @@ namespace Chirp.Infrastructure.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("Authors", (string)null);
                 });
 
             modelBuilder.Entity("Chirp.Models.Cheep", b =>
