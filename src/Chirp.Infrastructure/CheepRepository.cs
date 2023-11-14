@@ -92,7 +92,7 @@ public class CheepRepository : ICheepRepository
         }
         catch (Exception ex)
         {
-            _logger.LogInformation($"[POST] Error Ocurred: {ex.Message}");
+            throw new Exception($"[POST] Error Occurred: {ex.Message}");
         }
     }
 }

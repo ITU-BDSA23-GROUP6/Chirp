@@ -54,13 +54,12 @@ public class PublicModel : PageModel
 
                 CheepDTO cheepDTO = new(CheepText, currUser.UserName);
 
-                _cheepRepository.CreateCheep(cheepDTO);
+                await _cheepRepository.CreateCheep(cheepDTO);
 
                 int pageNumber = page ?? 1;
 
                 return RedirectToPage("Public", new { page = pageNumber });
             }
-            // [TODO] Add a handler for "if(!ModelState.IsValid)"
         }
         catch(Exception ex)
         {
