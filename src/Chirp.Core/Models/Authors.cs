@@ -8,9 +8,10 @@ namespace Chirp.Models
     [Table("Authors")]
     public class Author : IdentityUser
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        //[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Display(Name = "Author ID")]
-        public int AuthorId { get; set; }   // [TODO]: Make this 'override' the attribute from 'IdentityUser'
+
+        public override string Id { get; set; }   // [TODO]: Make this 'override' the attribute from 'IdentityUser'
 
         [StringLength(20, MinimumLength = 5)]
         [Display(Name = "Username")]

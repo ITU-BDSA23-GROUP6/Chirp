@@ -5,6 +5,7 @@ using Chirp.Infrastructure;
 using Chirp.Interfaces;
 using Chirp.Models;
 using DBContext;
+using Microsoft.Data.SqlClient;
 
 
 namespace Chirp.StartUp
@@ -13,6 +14,8 @@ namespace Chirp.StartUp
     {
         public IConfiguration _configuration { get; }
 
+
+
         public Startup(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -20,24 +23,6 @@ namespace Chirp.StartUp
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<DatabaseContext>(options =>
-                options.UseSqlServer(
-                    _configuration.GetConnectionString("DefaultConnection"),
-                    sqlServerOptionsAction: sqlOptions =>
-                    {
-                        sqlOptions.MigrationsAssembly("Chirp.Web");
-                        sqlOptions.EnableRetryOnFailure(
-                            maxRetryCount: 10,
-                            maxRetryDelay: TimeSpan.FromSeconds(30),
-                            errorNumbersToAdd: null);
-                    }
-                )
-            );
-
-
-
-
-
             services.AddDefaultIdentity<Author>(options =>
             {
 
@@ -64,11 +49,18 @@ namespace Chirp.StartUp
             .AddEntityFrameworkStores<DatabaseContext>()
             .AddDefaultTokenProviders();
 
-            services.ConfigureApplicationCookie(options => 
+
+            SqlConnectionStringBuilder sqlConnectionString = new SqlConnectionStringBuilder(_configuration.GetConnectionString("DefaultConnection"));
+            services.AddDbContext<DatabaseContext>(options =>
+            {
+                options.UseSqlServer(sqlConnectionString.ConnectionString);
+            });
+
+            services.ConfigureApplicationCookie(options =>
             {
                 options.Cookie.HttpOnly = true;
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(20); // TimeSpan.FromMinutes(5);
-                
+
                 options.LoginPath = "/Identity/Account/Login";
                 options.LogoutPath = "/Identity/Account/Logout";
                 //options.AccessDeniedPath = "/Identity/Account/AccessDenied";
