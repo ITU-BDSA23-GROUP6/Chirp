@@ -121,9 +121,14 @@ namespace Chirp.Web.Areas.Identity.Pages.Account
                         UserName = Input.UserName,
                         Email = Input.Email,
                         Cheeps = new List<Cheep>(),
+                        Followers = new HashSet<Author>(),
+                        Following = new HashSet<Author>(),
                         EmailConfirmed = true,
                     };
                     
+                    Console.WriteLine($"[REGISTRATION] Followers Count: {user.Followers?.Count}");
+                    Console.WriteLine($"[REGISTRATION] Following Count: {user.Following?.Count}");
+
                     var result = await _userManager.CreateAsync(user, Input.Password);
 
                     if (result.Succeeded)

@@ -10,32 +10,34 @@ public static class DbInitializer
     {
         if (!(chirpContext.Authors.Any() && chirpContext.Cheeps.Any()))
         {
-            Console.WriteLine("Azure SQL database being seeded with data");
+            Console.WriteLine("[DATA INITIALIZATION] Database is being seeded with data.");
 
-
-            // Perform your insert statements with explicit values
-
-            var a1 = new Author() { UserName = "Roger Histand", Email = "Roger+Histand@hotmail.com", Cheeps = new List<Cheep>() };
-            var a2 = new Author() { UserName = "Luanna Muro", Email = "Luanna-Muro@ku.dk", Cheeps = new List<Cheep>() };
-            var a3 = new Author() { UserName = "Wendell Ballan", Email = "Wendell-Ballan@gmail.com", Cheeps = new List<Cheep>() };
-            var a4 = new Author() { UserName = "Nathan Sirmon", Email = "Nathan+Sirmon@dtu.dk", Cheeps = new List<Cheep>() };
-            var a5 = new Author() { UserName = "Quintin Sitts", Email = "Quintin+Sitts@itu.dk", Cheeps = new List<Cheep>() };
-            var a6 = new Author() { UserName = "Mellie Yost", Email = "Mellie+Yost@ku.dk", Cheeps = new List<Cheep>() };
-            var a7 = new Author() { UserName = "Malcolm Janski", Email = "Malcolm-Janski@gmail.com", Cheeps = new List<Cheep>() };
-            var a8 = new Author() { UserName = "Octavio Wagganer", Email = "Octavio.Wagganer@dtu.dk", Cheeps = new List<Cheep>() };
-            var a9 = new Author() { UserName = "Johnnie Calixto", Email = "Johnnie+Calixto@itu.dk", Cheeps = new List<Cheep>() };
-            var a10 = new Author() { UserName = "Jacqualine Gilcoine", Email = "Jacqualine.Gilcoine@gmail.com", Cheeps = new List<Cheep>() };
-            var a11 = new Author() { UserName = "Helge", Email = "ropf@itu.dk", Cheeps = new List<Cheep>() };
-            var a12 = new Author() { UserName = "Rasmus", Email = "rnie@itu.dk", Cheeps = new List<Cheep>() };
-
-            Console.WriteLine("Initialized the Authors");
-
-
-            // When creating a POST-Request, check for whether or not Cheep list already exists.
+            var a1 = new Author() { UserName = "Roger Histand",         Email = "Roger+Histand@hotmail.com",        Cheeps = new List<Cheep>(), Followers = new HashSet<Author>(), Following = new HashSet<Author>() };
+            var a2 = new Author() { UserName = "Luanna Muro",           Email = "Luanna-Muro@ku.dk",                Cheeps = new List<Cheep>(), Followers = new HashSet<Author>(), Following = new HashSet<Author>() };
+            var a3 = new Author() { UserName = "Wendell Ballan",        Email = "Wendell-Ballan@gmail.com",         Cheeps = new List<Cheep>(), Followers = new HashSet<Author>(), Following = new HashSet<Author>() };
+            var a4 = new Author() { UserName = "Nathan Sirmon",         Email = "Nathan+Sirmon@dtu.dk",             Cheeps = new List<Cheep>(), Followers = new HashSet<Author>(), Following = new HashSet<Author>() };
+            var a5 = new Author() { UserName = "Quintin Sitts",         Email = "Quintin+Sitts@itu.dk",             Cheeps = new List<Cheep>(), Followers = new HashSet<Author>(), Following = new HashSet<Author>() };
+            var a6 = new Author() { UserName = "Mellie Yost",           Email = "Mellie+Yost@ku.dk",                Cheeps = new List<Cheep>(), Followers = new HashSet<Author>(), Following = new HashSet<Author>() };
+            var a7 = new Author() { UserName = "Malcolm Janski",        Email = "Malcolm-Janski@gmail.com",         Cheeps = new List<Cheep>(), Followers = new HashSet<Author>(), Following = new HashSet<Author>() };
+            var a8 = new Author() { UserName = "Octavio Wagganer",      Email = "Octavio.Wagganer@dtu.dk",          Cheeps = new List<Cheep>(), Followers = new HashSet<Author>(), Following = new HashSet<Author>() };
+            var a9 = new Author() { UserName = "Johnnie Calixto",       Email = "Johnnie+Calixto@itu.dk",           Cheeps = new List<Cheep>(), Followers = new HashSet<Author>(), Following = new HashSet<Author>() };
+            var a10 = new Author() { UserName = "Jacqualine Gilcoine",  Email = "Jacqualine.Gilcoine@gmail.com",    Cheeps = new List<Cheep>(), Followers = new HashSet<Author>(), Following = new HashSet<Author>() };
+            var a11 = new Author() { UserName = "Helge",                Email = "ropf@itu.dk",                      Cheeps = new List<Cheep>(), Followers = new HashSet<Author>(), Following = new HashSet<Author>() };
+            var a12 = new Author() { UserName = "Rasmus",               Email = "rnie@itu.dk",                      Cheeps = new List<Cheep>(), Followers = new HashSet<Author>(), Following = new HashSet<Author>() };
 
             var authors = new List<Author>() { a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12 };
 
-            Console.WriteLine("Initialized the authors list");
+            bool allHave = true;
+            foreach(Author a in authors)
+            {
+                if(a.Following == null || a.Followers == null)
+                {
+                    allHave = false;
+                    break;
+                }
+            }
+
+            Console.WriteLine($"[DATA INITIALIZATION] Test results for 'allHave' {allHave}");
 
             var c1 = new Cheep() { Author = a10, Text = "They were married in Chicago, with old Smith, and was expected aboard every day; meantime, the two went past me.", TimeStamp = DateTime.Parse("2023-08-01 13:14:37") };
             var c2 = new Cheep() { Author = a10, Text = "And then, as he listened to all that''s left o'' twenty-one people.", TimeStamp = DateTime.Parse("2023-08-01 13:15:21") };
@@ -714,40 +716,8 @@ public static class DbInitializer
 
             chirpContext.Authors.AddRange(authors);
             chirpContext.Cheeps.AddRange(cheeps);
-
-
-            try
-            {
-                chirpContext.Database.OpenConnection(); // Open the connection to the database
-
-                Console.WriteLine("Opening conncetion to Database");
-
-
-                //chirpContext.Database.ExecuteSqlRaw("SET IDENTITY_INSERT [Cheeps] ON");
-
-                int numEntriesWritten = chirpContext.SaveChanges();
-
-                Console.WriteLine("numEntriesWritten: " + numEntriesWritten + ". And saved changes");
-
-                //chirpContext.Database.ExecuteSqlRaw("SET IDENTITY_INSERT [Cheeps] OFF");
-
-                if (numEntriesWritten > 0)
-                {
-                    Console.WriteLine("Changes successfully written to Azure SQL Database");
-                    return;
-                }
-                else
-                {
-                    Console.WriteLine("Data base already seeded with data");
-                    return;
-                }
-            }
-            finally
-            {
-                chirpContext.Database.CloseConnection(); // Close the database connection
-            }
-
-
+            
+            chirpContext.SaveChanges();
         }
     }
 }

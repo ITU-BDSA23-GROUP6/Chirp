@@ -8,10 +8,8 @@ namespace Chirp.Models
     [Table("Authors")]
     public class Author : IdentityUser
     {
-        //[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Display(Name = "Author ID")]
-
-        public override string Id { get; set; }   // [TODO]: Make this 'override' the attribute from 'IdentityUser'
+        public override string Id { get; set; }
 
         [StringLength(20, MinimumLength = 5)]
         [Display(Name = "Username")]
@@ -20,5 +18,7 @@ namespace Chirp.Models
         [EmailAddress]
         public required override string Email { get; set; }
         public ICollection<Cheep> Cheeps { get; set; } = null!;
+        public ISet<Author> Followers { get; set; } = null!;
+        public ISet<Author> Following { get; set; } = null!;
     }
 }

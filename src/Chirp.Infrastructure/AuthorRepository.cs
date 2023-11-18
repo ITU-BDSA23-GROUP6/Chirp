@@ -15,27 +15,48 @@ public class AuthorRepository : IAuthorRepository
         _context = context;
     }
 
-    public void CreateNewAuthor(AuthorDTO authorDTO)
+    public async Task<IEnumerable<Author>> GetAllAuthorsWithFollowers()
     {
-        Author author = new()
-        {
-            UserName = authorDTO.UserName,
-            Email = authorDTO.Email,
-            Cheeps = new List<Cheep>(),
-            EmailConfirmed = true,
-        };
-
-        _context.Authors.Add(author);
-        _context.SaveChanges();
+        return await _context.Authors
+            .Include(a => a.Following)
+            .Include(a => a.Followers)
+            .ToListAsync();
     }
 
     public async Task<Author> GetAuthorByName(string authorName)
     {
         var author = await _context.Authors
+        .Include(a => a.Following)
+        .Include(a => a.Followers)
         .Where(a => a.UserName == authorName)
-        .FirstOrDefaultAsync() ?? null;
+        .FirstOrDefaultAsync() ?? throw new Exception("Author could not be located");   // [TODO] Handle exception
 
         return author;
+    }
+
+    public void Follow(Author targetAuthor, Author authorToFollow)
+    {
+        if(!targetAuthor.Followers.Contains(authorToFollow))
+        {
+            targetAuthor.Followers.Add(authorToFollow);
+        }
+        else
+        {
+            //... Add this ---> [ModelState.AddModelError(string.Empty, "...");]
+        }
+
+    }
+
+    public void Unfollow(Author targetAuthor, Author authorToUnfollow)
+    {
+        if(targetAuthor.Followers.Contains(authorToUnfollow))
+        {
+            targetAuthor.Followers.Remove(authorToUnfollow);
+        }
+        else
+        {
+            //... Add this ---> [ModelState.AddModelError(string.Empty, "...");]
+        }
     }
 
 }

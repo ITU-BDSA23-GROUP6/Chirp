@@ -5,16 +5,18 @@
 @{
     ViewData["Title"] = "Chirp!";
     Layout = "Shared/_Layout";
-    var numPages = Math.Ceiling((double)Model.totalCheeps / Model.cheepsPerPage);
-    var currPage = @Model.PageNumber;
+    var numPages     = Math.Ceiling((double)Model.totalCheeps / Model.cheepsPerPage);
+    var currPage     = @Model.PageNumber;
+    var username     = User.Identity?.Name;
 }
+
 <div>
     <div>
     @if(SignInManager.IsSignedIn(User))
     {
-        <form method="post">
+        <form method="post" asp-page-handler="Cheep">
             <div id="post-cheep-container">
-                <label asp-for="CheepText" class="form-label">Hey @User.Identity?.Name! What's on your mind?</label>
+                <label asp-for="CheepText" class="form-label">Hey @username! What's on your mind?</label>
                 <input asp-for="CheepText" class="form-control" aria-required="true" />
                 <span asp-validation-for="CheepText" class="text-danger"></span>
             </div>
@@ -40,6 +42,24 @@
             {
                 <div class="cheep-wrapper">
                     <li>
+                        @if(SignInManager.IsSignedIn(User) && username != null)
+                        {
+                            var user = Model.SignedInAuthor;
+
+                            try
+                            {
+                                <form method="post" asp-page-handler="Follow">
+                                    <button class="following-button">
+                                        @(user.Following.Any() && user.Following.Contains<Author>(cheep.Author) ? "Unfollow" : "Follow")
+                                    </button>
+                                </form>
+                            } 
+                            catch(Exception ex)
+                            {
+                                <p>Exception Message: @ex.Message</p>
+                            }
+                        }
+
                         <p>
                             <strong>
                                 <a href="/@cheep.Author.UserName">@cheep.Author.UserName</a>

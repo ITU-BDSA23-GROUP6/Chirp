@@ -109,6 +109,7 @@ div.page ul.cheeps {
 }
 
 div.page ul.cheeps li {
+  position: relative;
   margin: 10px 0;
   padding: 5px;
   background: #F0FAF9;
@@ -225,4 +226,10 @@ li.topic {
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   min-height: 20px;
+}
+
+div.page ul.cheeps li .following-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
 }

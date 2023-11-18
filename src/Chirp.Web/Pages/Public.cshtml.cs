@@ -15,17 +15,22 @@ public class PublicModel : PageModel
 {
     private readonly ILogger<PublicModel> _logger;
     private readonly ICheepRepository _cheepRepository;
+    private readonly IAuthorRepository _authorRepository;
     private readonly UserManager<Author> _userManager;
+    private readonly SignInManager<Author> _signInManager;
     
     public List<Cheep> Cheeps { get; set; } = null!;
+    public Author SignedInAuthor { get; set; } = null!;
     public int totalCheeps;
     public int cheepsPerPage;
     public int PageNumber { get; set; }
 
-    public PublicModel(ICheepRepository cheepRepository, UserManager<Author> userManager, ILogger<PublicModel> logger)
+    public PublicModel(IAuthorRepository authorRepository, ICheepRepository cheepRepository, UserManager<Author> userManager, SignInManager<Author> signInManager, ILogger<PublicModel> logger)
     {
         _cheepRepository = cheepRepository;
+        _authorRepository = authorRepository;
         _userManager = userManager;
+        _signInManager = signInManager;
         _logger = logger;
 
         cheepsPerPage = cheepRepository.CheepsPerPage();
@@ -38,16 +43,40 @@ public class PublicModel : PageModel
     {   
         int pageNumber = page ?? 0;
         if (pageNumber > 0) pageNumber--;
+        
         IEnumerable<Cheep> cheeps = await _cheepRepository.GetCheeps(pageNumber);
         Cheeps = cheeps.ToList();
 
         IEnumerable<Cheep> allCheeps = await _cheepRepository.GetAllCheeps();
         totalCheeps = allCheeps.Count();
 
+        /*
+            @ The following process uses Eager Loading.
+            @ This is a technique used when dealing with having to include values which are located in
+              separate Tables.
+        
+        */
+        if(_signInManager.IsSignedIn(User))
+        {
+            _logger.LogInformation($"[PUBLIC] User: {User.Identity?.Name} is logged in");
+
+            try
+            {
+                SignedInAuthor = await _authorRepository.GetAuthorByName(User.Identity?.Name);
+
+                _logger.LogInformation("[PUBLIC] SignedInAuthor assigned a value");
+            }
+            catch(Exception ex)
+            {
+                _logger.LogInformation($"[EXCEPTION] {ex.Message}");
+            }
+        }
+
+
         return Page();
     }
 
-    public async Task<IActionResult> OnPostAsync([FromQuery] int? page) 
+    public async Task<IActionResult> OnPostCheep([FromQuery] int? page = 1) 
     {
         try
         {
@@ -58,9 +87,32 @@ public class PublicModel : PageModel
 
                 await _cheepRepository.CreateCheep(cheepDTO);
 
-                int pageNumber = page ?? 1;
+                int pageNumber = page ?? 1; // [TODO] Change to zero
 
-                return RedirectToPage("Public", new { page = pageNumber });
+                return RedirectToPage("Public", new { page });
+            }
+        }
+        catch(Exception ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+            return RedirectToPage("/Error");
+        }
+
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostFollow([FromQuery] int? page = 0)
+    {
+        try
+        {
+            if(ModelState.IsValid) {
+                if(SignedInAuthor != null)
+                {
+                    _logger.LogInformation("[FOLLOW/UNFOLLOW] Post made!");
+                }
+
+
+                return RedirectToPage("Public", new { page });
             }
         }
         catch(Exception ex)
