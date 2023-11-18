@@ -25,13 +25,11 @@ public class AuthorRepository : IAuthorRepository
 
     public async Task<Author> GetAuthorByName(string authorName)
     {
-        var author = await _context.Authors
-        .Include(a => a.Following)
-        .Include(a => a.Followers)
-        .Where(a => a.UserName == authorName)
-        .FirstOrDefaultAsync() ?? throw new Exception("Author could not be located");   // [TODO] Handle exception
-
-        return author;
+        return await _context.Authors
+            .Include(a => a.Following)
+            .Include(a => a.Followers)
+            .Where(a => a.UserName == authorName)
+            .FirstOrDefaultAsync() ?? throw new Exception("Author could not be located");   // [TODO] Handle exception
     }
 
     public void Follow(Author targetAuthor, Author authorToFollow)

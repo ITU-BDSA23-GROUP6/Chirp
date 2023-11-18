@@ -6,7 +6,6 @@
     ViewData["Title"] = "Chirp!";
     Layout = "Shared/_Layout";
     var numPages     = Math.Ceiling((double)Model.totalCheeps / Model.cheepsPerPage);
-    var currPage     = @Model.PageNumber;
     var username     = User.Identity?.Name;
 }
 
@@ -42,16 +41,24 @@
             {
                 <div class="cheep-wrapper">
                     <li>
-                        @if(SignInManager.IsSignedIn(User) && username != null)
+                        @if(SignInManager.IsSignedIn(User) && username != null && username != cheep.Author.UserName)
                         {
                             var user = Model.SignedInAuthor;
 
                             try
                             {
                                 <form method="post" asp-page-handler="Follow">
-                                    <button class="following-button">
-                                        @(user.Following.Any() && user.Following.Contains<Author>(cheep.Author) ? "Unfollow" : "Follow")
-                                    </button>
+                                    @Html.AntiForgeryToken()
+                                    @if(user.Following.Any() && user.Following.Contains<Author>(cheep.Author))
+                                    {
+                                        <input type="hidden" asp-for="IsFollow" value="false">
+                                        <button type="submit" class="following-button">Unfollow</button>
+                                    }
+                                    else
+                                    {
+                                        <input type="hidden" asp-for="IsFollow" value="true">
+                                        <button type="submit" class="following-button">Follow</button>
+                                    }
                                 </form>
                             } 
                             catch(Exception ex)

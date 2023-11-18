@@ -19,11 +19,12 @@ public class PublicModel : PageModel
     private readonly UserManager<Author> _userManager;
     private readonly SignInManager<Author> _signInManager;
     
+
     public List<Cheep> Cheeps { get; set; } = null!;
     public Author SignedInAuthor { get; set; } = null!;
+    public Author TargetToFollow_Unfollow { get; set; } = null!;
     public int totalCheeps;
     public int cheepsPerPage;
-    public int PageNumber { get; set; }
 
     public PublicModel(IAuthorRepository authorRepository, ICheepRepository cheepRepository, UserManager<Author> userManager, SignInManager<Author> signInManager, ILogger<PublicModel> logger)
     {
@@ -41,14 +42,17 @@ public class PublicModel : PageModel
 
     public async Task<IActionResult> OnGet([FromQuery] int? page)
     {   
-        int pageNumber = page ?? 0;
-        if (pageNumber > 0) pageNumber--;
+        int pgNum = page ?? 0;
         
-        IEnumerable<Cheep> cheeps = await _cheepRepository.GetCheeps(pageNumber);
+        _logger.LogInformation($"[ON-GET] Page Number: {pgNum}");
+
+        IEnumerable<Cheep> cheeps = await _cheepRepository.GetCheeps(pgNum);
         Cheeps = cheeps.ToList();
+        _logger.LogInformation($"[ON-GET] Number of Cheeps: {Cheeps?.Count}");
 
         IEnumerable<Cheep> allCheeps = await _cheepRepository.GetAllCheeps();
         totalCheeps = allCheeps.Count();
+        _logger.LogInformation($"[ON-GET] Total Number of Cheeps: {totalCheeps}");
 
         /*
             @ The following process uses Eager Loading.
@@ -58,13 +62,13 @@ public class PublicModel : PageModel
         */
         if(_signInManager.IsSignedIn(User))
         {
-            _logger.LogInformation($"[PUBLIC] User: {User.Identity?.Name} is logged in");
+            _logger.LogInformation($"[ON GET] User: {User.Identity?.Name} is logged in");
 
             try
             {
                 SignedInAuthor = await _authorRepository.GetAuthorByName(User.Identity?.Name);
 
-                _logger.LogInformation("[PUBLIC] SignedInAuthor assigned a value");
+                _logger.LogInformation("[ON GET] SignedInAuthor assigned a value");
             }
             catch(Exception ex)
             {
@@ -76,7 +80,7 @@ public class PublicModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostCheep([FromQuery] int? page = 1) 
+    public async Task<IActionResult> OnPostCheep([FromQuery] int? page = 0) 
     {
         try
         {
@@ -86,8 +90,6 @@ public class PublicModel : PageModel
                 CheepDTO cheepDTO = new(CheepText, currUser.UserName);
 
                 await _cheepRepository.CreateCheep(cheepDTO);
-
-                int pageNumber = page ?? 1; // [TODO] Change to zero
 
                 return RedirectToPage("Public", new { page });
             }
@@ -101,18 +103,48 @@ public class PublicModel : PageModel
         return Page();
     }
 
+    [BindProperty]
+    public bool IsFollow { get; set; } = false;
+
     public async Task<IActionResult> OnPostFollow([FromQuery] int? page = 0)
     {
+        ModelState.Clear();
+
         try
         {
             if(ModelState.IsValid) {
-                if(SignedInAuthor != null)
+                _logger.LogInformation("[FOLLOW/UNFOLLOW] State is correct.");
+                if(_signInManager.IsSignedIn(User))
                 {
-                    _logger.LogInformation("[FOLLOW/UNFOLLOW] Post made!");
+                    _logger.LogInformation("[FOLLOW/UNFOLLOW] Post made:");
+
+                    if(IsFollow) 
+                    {
+                        // _authorRepository.Follow(SignedInAuthor, TargetToFollow_Unfollow);
+
+                        _logger.LogInformation("  # Follow");
+                    }
+                    else
+                    {
+                        _logger.LogInformation("  # Unfollow");
+                    }
+                } 
+                else if(SignedInAuthor == null)
+                {
+                    _logger.LogInformation("[FOLLOW/UNFOLLOW] SignedInAuthor was NULL");
                 }
 
-
                 return RedirectToPage("Public", new { page });
+            } 
+            else
+            {
+                _logger.LogInformation("[FOLLOW/UNFOLLOW] State is incorrect");
+
+                _logger.LogInformation("ModelState is invalid. Errors:");
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    _logger.LogInformation($"- {error.ErrorMessage}");
+                }
             }
         }
         catch(Exception ex)
@@ -121,6 +153,7 @@ public class PublicModel : PageModel
             return RedirectToPage("/Error");
         }
 
-        return Page();
+        _logger.LogInformation("[FOLLOW/UNFOLLOW] Entered bottom");
+        return RedirectToPage("Public", new { page });
     }
 }
