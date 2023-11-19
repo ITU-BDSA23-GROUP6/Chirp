@@ -19,7 +19,7 @@ public class AuthorRepository : IAuthorRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Author>> GetAllAuthorsWithFollowers()
+    public async Task<IEnumerable<Author>> GetAllAuthors()
     {
         return await _context.Authors
             .Include(a => a.Following)
@@ -94,4 +94,16 @@ public class AuthorRepository : IAuthorRepository
         }
     }
 
+
+    public async Task<IEnumerable<Author>> GetAuthorFollowers(string authorName)
+    {
+        var author = await GetAuthorByName(authorName);
+        return author.Followers.ToList();
+    }
+
+    public async Task<IEnumerable<Author>> GetAuthorFollowing(string authorName)
+    {
+        var author = await GetAuthorByName(authorName);
+        return author.Following.ToList();
+    }
 }

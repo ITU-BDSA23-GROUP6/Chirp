@@ -12,28 +12,51 @@ namespace Chirp.Web.Pages;
 public class UserTimelineModel : PageModel
 {
     private readonly ICheepRepository _cheepRepository;
+    private readonly IAuthorRepository _authorRepository;
+    private readonly UserManager<Author> _userManager;
+    private readonly SignInManager<Author> _signInManager;
     private readonly ILogger<UserTimelineModel> _logger;
     public List<Cheep> Cheeps { get; set; } = null!;
+    public List<Author> Followers { get; set; } = null!;
+    public List<Author> Following { get; set; } = null!;
     public int cheepsPerPage;
     public int totalCheeps;
-    public UserTimelineModel(ICheepRepository cheepRepository, ILogger<UserTimelineModel> logger)
+    public UserTimelineModel(UserManager<Author> userManager, SignInManager<Author> signInManager, IAuthorRepository authorRepository, ICheepRepository cheepRepository, ILogger<UserTimelineModel> logger)
     {
-        // Should "CheepRepository" be changed so it uses DI? 
-        // If you click on your name - redirect to MyPage
-        // else you go that Users timeline.
         _logger = logger;
-        
+
+        _userManager = userManager;
+        _signInManager = signInManager;   
         _cheepRepository = cheepRepository;
+        _authorRepository = authorRepository;
+
         cheepsPerPage = _cheepRepository.CheepsPerPage();
     }
 
     public async Task<IActionResult> OnGet(string author, [FromQuery] int page)
     {
-        IEnumerable<Cheep> cheeps = await _cheepRepository.GetCheepsFromAuthor(author, page);
-        Cheeps = cheeps.ToList();
+        try
+        {
+            // 01. Cheeps:
+            IEnumerable<Cheep> cheeps = await _cheepRepository.GetCheepsFromAuthor(author, page);
+            Cheeps = cheeps.ToList();
 
-        IEnumerable<Cheep> allCheeps = await _cheepRepository.GetAllCheepsFromAuthor(author);
-        totalCheeps = allCheeps.Count();
+            // 02. All the Authors Cheeps - [TODO] Change this to be more efficient, no need to get all Cheeps everytime:
+            IEnumerable<Cheep> allCheeps = await _cheepRepository.GetAllCheepsFromAuthor(author);
+            totalCheeps = allCheeps.Count();
+
+            // 03. Followers
+            IEnumerable<Author> followers = await _authorRepository.GetAuthorFollowers(author);
+            Followers = followers.ToList();
+
+            // 04. Following:
+            IEnumerable<Author> following = await _authorRepository.GetAuthorFollowing(author);
+            Following = following.ToList();
+        }
+        catch(Exception ex)
+        {
+            throw new Exception($"Exception: {ex.Message}");    // Propogate the exception
+        }
 
         return Page();
     }

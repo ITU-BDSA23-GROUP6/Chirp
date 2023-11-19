@@ -7,7 +7,7 @@
     var routeName = HttpContext.GetRouteValue("author");
 }
 
-<div>
+<div class="user-time-line-container">
     <h2> @routeName's Timeline </h2>
 
     <ul id="messagelist" class="cheeps">
@@ -33,6 +33,19 @@
     {
         <em>There are no cheeps so far.</em>
     }
+    </ul>
+
+    <h2> Following </h2>
+    <ul class="following">
+        
+
+    </ul>
+
+
+    <h2> Followers </h2>
+    <ul class="followers">
+
+
     </ul>
 </div>
 

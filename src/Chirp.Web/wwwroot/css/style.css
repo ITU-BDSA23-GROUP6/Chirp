@@ -232,7 +232,9 @@ div.page ul.cheeps li .following-button {
   position: absolute;
   top: 5px;
   right: 5px;
-  background: none;
-  border: none;
+  background: #FFFF;
+  border-color: #1111;
+  border: 2px;
+  border-radius: 8px;
   padding: 0;
 }
