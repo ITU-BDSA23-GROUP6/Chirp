@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Chirp.Models;
 using Chirp.Interfaces;
 using Chirp.CDTO;
+using Chirp.FDTO;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
@@ -22,7 +23,6 @@ public class PublicModel : PageModel
 
     public List<Cheep> Cheeps { get; set; } = null!;
     public Author SignedInAuthor { get; set; } = null!;
-    public Author TargetToFollow_Unfollow { get; set; } = null!;
     public int totalCheeps;
     public int cheepsPerPage;
 
@@ -87,7 +87,7 @@ public class PublicModel : PageModel
             if(ModelState.IsValid) {
                 var currUser = await _userManager.GetUserAsync(User) ?? throw new Exception("ERROR: User could not be found");
 
-                CheepDTO cheepDTO = new(CheepText, currUser.UserName);
+                CheepDTO cheepDTO = new(CheepText, currUser.UserName);  // [TODO] Change to User.Identity.?.Name;
 
                 await _cheepRepository.CreateCheep(cheepDTO);
 
@@ -105,6 +105,9 @@ public class PublicModel : PageModel
 
     [BindProperty]
     public bool IsFollow { get; set; } = false;
+    [BindProperty]
+    public string TargetAuthorUserName { get; set; } = null!;
+
 
     public async Task<IActionResult> OnPostFollow([FromQuery] int? page = 0)
     {
@@ -114,19 +117,27 @@ public class PublicModel : PageModel
         {
             if(ModelState.IsValid) {
                 _logger.LogInformation("[FOLLOW/UNFOLLOW] State is correct.");
-                if(_signInManager.IsSignedIn(User))
+                if(_signInManager.IsSignedIn(User) && User.Identity != null)
                 {
                     _logger.LogInformation("[FOLLOW/UNFOLLOW] Post made:");
 
+                    FollowersDTO followersDTO = new(User.Identity.Name, TargetAuthorUserName);
+
                     if(IsFollow) 
                     {
-                        // _authorRepository.Follow(SignedInAuthor, TargetToFollow_Unfollow);
+                        _logger.LogInformation($"  # [FOLLOW/UNFOLLOW] DTO: ({followersDTO.TargetAuthor}, {followersDTO.FollowAuthor})");
 
-                        _logger.LogInformation("  # Follow");
+                        await _authorRepository.Follow(followersDTO);
+                        if(string.IsNullOrEmpty(TargetAuthorUserName)) _logger.LogInformation($"  # Follow - TargetAuthor was NULL");
+                        else _logger.LogInformation($"  # [FOLLOW/UNFOLLOW] Follow - Author Name: {TargetAuthorUserName}");
                     }
                     else
                     {
-                        _logger.LogInformation("  # Unfollow");
+                        _logger.LogInformation($"  # [FOLLOW/UNFOLLOW] DTO: ({followersDTO.TargetAuthor}, {followersDTO.FollowAuthor})");
+                        
+                        await _authorRepository.Unfollow(followersDTO);
+                        if(string.IsNullOrEmpty(TargetAuthorUserName)) _logger.LogInformation($"  # Unfollow - TargetAuthor was NULL");
+                        else _logger.LogInformation($"  # [FOLLOW/UNFOLLOW] Unfollow - Author Name: {TargetAuthorUserName}");
                     }
                 } 
                 else if(SignedInAuthor == null)
