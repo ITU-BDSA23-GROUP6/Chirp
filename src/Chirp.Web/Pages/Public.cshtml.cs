@@ -108,7 +108,6 @@ public class PublicModel : PageModel
     [BindProperty]
     public string TargetAuthorUserName { get; set; } = null!;
 
-
     public async Task<IActionResult> OnPostFollow([FromQuery] int? page = 0)
     {
         ModelState.Clear();
