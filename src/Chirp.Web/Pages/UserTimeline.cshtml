@@ -8,8 +8,7 @@
 }
 
 <div class="user-time-line-container">
-    <h2> @routeName's Timeline </h2>
-
+    <h3> @routeName's Timeline </h3>
     <ul id="messagelist" class="cheeps">
     @if (Model.Cheeps.Any())
     {
@@ -35,17 +34,54 @@
     }
     </ul>
 
-    <h2> Following </h2>
-    <ul class="following">
-        
+    <h3> Following </h3>
+    <ul class="cheeps"> @* Change class name to something more universal *@
+        @if (Model.Following.Any())
+        {
+            @foreach (var follow in Model.Following)
+            {
+                <h5>@follow.UserName</h5>
 
+                @*[TODO] Fix this! Part of ugly part*@
+                var followersCheepTask = await Model.GetTop4CheepsFromFollower(follow.UserName);
+                var followersCheep = followersCheepTask.ToList();
+
+                @if(followersCheep.Any())
+                {
+                    @foreach (var cheep in followersCheep)
+                    {
+                        <li>
+                            <p>
+                                @cheep.Text
+                                <small>&mdash; @cheep.TimeStamp</small>
+                            </p>
+                        </li>
+                    }
+                }
+            }
+        }
+        else
+        {
+            <em>You currently aren't Following anyone.</em>
+        }
     </ul>
 
 
-    <h2> Followers </h2>
-    <ul class="followers">
-
-
+    <h3> Followers </h3>
+    <ul class="cheeps">
+        @if (Model.Followers.Any())
+        {
+            @foreach (var follower in Model.Followers)
+            {
+                <h5>
+                    <a href="/@follower.UserName">@follower.UserName</a>
+                </h5>
+            }
+        }
+        else
+        {
+            <em>You currently have no Followers :(</em>
+        }
     </ul>
 </div>
 

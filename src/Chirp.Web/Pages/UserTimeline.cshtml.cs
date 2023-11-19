@@ -60,4 +60,10 @@ public class UserTimelineModel : PageModel
 
         return Page();
     }
+
+    // [TODO] Change this and clean up. Simplist solution - but ugly af.
+    public async Task<IEnumerable<Cheep>> GetTop4CheepsFromFollower(string author)
+    {
+        return await _cheepRepository.GetTop4FromAuthor(author);
+    }
 }

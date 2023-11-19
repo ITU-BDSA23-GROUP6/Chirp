@@ -65,6 +65,16 @@ public class CheepRepository : ICheepRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Cheep>> GetTop4FromAuthor(string author)
+    {
+        return await _context.Cheeps
+            .Include(cheep => cheep.Author)
+            .Where(cheep => cheep.Author.UserName == author)
+            .OrderByDescending(cheep => cheep.TimeStamp)
+            .Take(4)
+            .ToListAsync();
+    }
+
     public async Task CreateCheep(CheepDTO cheepDTO)
     {
         try
@@ -96,36 +106,3 @@ public class CheepRepository : ICheepRepository
         }
     }
 }
-
-
-/*    try
-            {
-                chirpContext.Database.OpenConnection(); // Open the connection to the database
-
-                Console.WriteLine("Opening conncetion to Database");
-
-
-                //chirpContext.Database.ExecuteSqlRaw("SET IDENTITY_INSERT [Cheeps] ON");
-
-                int numEntriesWritten = chirpContext.SaveChanges();
-
-                Console.WriteLine("numEntriesWritten: " + numEntriesWritten + ". And saved changes");
-
-                //chirpContext.Database.ExecuteSqlRaw("SET IDENTITY_INSERT [Cheeps] OFF");
-
-                if (numEntriesWritten > 0)
-                {
-                    Console.WriteLine("Changes successfully written to Azure SQL Database");
-                    return;
-                }
-                else
-                {
-                    Console.WriteLine("Data base already seeded with data");
-                    return;
-                }
-            }
-            finally
-            {
-                chirpContext.Database.CloseConnection(); // Close the database connection
-            }
-            */
