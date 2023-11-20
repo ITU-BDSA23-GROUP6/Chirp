@@ -114,47 +114,26 @@ public class PublicModel : PageModel
         try
         {
             if(ModelState.IsValid) {
-                _logger.LogInformation("[FOLLOW/UNFOLLOW] State is correct.");
                 if(_signInManager.IsSignedIn(User) && User.Identity != null)
                 {
-                    _logger.LogInformation("[FOLLOW/UNFOLLOW] Post made:");
-
                     FollowersDTO followersDTO = new(User.Identity.Name, TargetAuthorUserName);
 
                     if(IsFollow) 
                     {
-                        _logger.LogInformation($"  # [FOLLOW/UNFOLLOW] DTO: ({followersDTO.TargetAuthor}, {followersDTO.FollowAuthor})");
-
                         await _authorRepository.Follow(followersDTO);
-                        if(string.IsNullOrEmpty(TargetAuthorUserName)) _logger.LogInformation($"  # Follow - TargetAuthor was NULL");
-                        else _logger.LogInformation($"  # [FOLLOW/UNFOLLOW] Follow - Author Name: {TargetAuthorUserName}");
                     }
                     else
-                    {
-                        _logger.LogInformation($"  # [FOLLOW/UNFOLLOW] DTO: ({followersDTO.TargetAuthor}, {followersDTO.FollowAuthor})");
-                        
+                    {                        
                         await _authorRepository.Unfollow(followersDTO);
-                        if(string.IsNullOrEmpty(TargetAuthorUserName)) _logger.LogInformation($"  # Unfollow - TargetAuthor was NULL");
-                        else _logger.LogInformation($"  # [FOLLOW/UNFOLLOW] Unfollow - Author Name: {TargetAuthorUserName}");
                     }
                 } 
                 else if(SignedInAuthor == null)
                 {
-                    _logger.LogInformation("[FOLLOW/UNFOLLOW] SignedInAuthor was NULL");
+                    throw new Exception("[PUBLIC.CSHTML.CS] The 'SignedInAuthor' variable was NULL");
                 }
 
                 return RedirectToPage("Public", new { page });
             } 
-            else
-            {
-                _logger.LogInformation("[FOLLOW/UNFOLLOW] State is incorrect");
-
-                _logger.LogInformation("ModelState is invalid. Errors:");
-                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    _logger.LogInformation($"- {error.ErrorMessage}");
-                }
-            }
         }
         catch(Exception ex)
         {
@@ -162,7 +141,6 @@ public class PublicModel : PageModel
             return RedirectToPage("/Error");
         }
 
-        _logger.LogInformation("[FOLLOW/UNFOLLOW] Entered bottom");
         return RedirectToPage("Public", new { page });
     }
 }

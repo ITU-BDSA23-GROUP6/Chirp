@@ -53,7 +53,7 @@
                                     {
                                         <input type="hidden" asp-for="IsFollow" value="false" />
                                         <input type="hidden" asp-for="TargetAuthorUserName" value="@cheep.Author.UserName" />
-                                        <button type="submit" class="following-button">
+                                        <button type="submit" class="following-button" OnClientClick="return false;">
                                             <img id="unfollow" src="/images/unfollow.svg" alt="Unfollow"></img>
                                         </button>
                                     }
@@ -61,7 +61,7 @@
                                     {
                                         <input type="hidden" asp-for="IsFollow" value="true" />
                                         <input type="hidden" asp-for="TargetAuthorUserName" value="@cheep.Author.UserName" />
-                                        <button type="submit" class="following-button">
+                                        <button type="submit" class="following-button" OnClientClick="return false;">
                                             <img id="follow" src="/images/follow.svg" alt="Follow"></img>
                                         </button>
                                     }
