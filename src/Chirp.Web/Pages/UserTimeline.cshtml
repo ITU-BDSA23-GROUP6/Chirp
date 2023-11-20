@@ -1,20 +1,56 @@
 ﻿@page "/{author}"
 @model Chirp.Web.Pages.UserTimelineModel
-
+@inject SignInManager<Author> SignInManager
+@inject UserManager<Author> UserManager
 @{
     ViewData["Title"] = "Chirp!";
     Layout = "Shared/_Layout";
-    var routeName = HttpContext.GetRouteValue("author");
+    var routeName = HttpContext.GetRouteValue("author")?.ToString();
+    var username  = User.Identity?.Name;
+    var SIU = Model.SignedInUser;   // 01. SignedInUser
+    var TLU = Model.TimelineUser;   // 02. TimelineUser
 }
 
 <div class="user-time-line-container">
-    <h3> @routeName's Timeline </h3>
+    <div class="user-time-line-header-container">
+        <h3> @routeName's Timeline </h3>
+        @if(SignInManager.IsSignedIn(User) && username != null && routeName != username) @* Pack into bool method *@
+        {
+            @* [PACK INTO PARTIAL #1] *@
+            try
+            {
+                <form method="post" asp-page-handler="Follow">
+                    @Html.AntiForgeryToken()
+                    @if(SIU.Following.Any() && SIU.Following.Contains<Author>(TLU))
+                    {
+                        <input type="hidden" asp-for="IsFollow" value="false" />
+                        <input type="hidden" asp-for="TargetAuthorUserName" value="@TLU.UserName" />
+                        <button type="submit" class="following-button" OnClientClick="return false;">
+                            <img id="unfollow" src="/images/unfollow.svg" alt="Unfollow"></img>
+                        </button>
+                    }
+                    else
+                    {
+                        <input type="hidden" asp-for="IsFollow" value="true" />
+                        <input type="hidden" asp-for="TargetAuthorUserName" value="@TLU.UserName" />
+                        <button type="submit" class="following-button" OnClientClick="return false;">
+                            <img id="follow" src="/images/follow.svg" alt="Follow"></img>
+                        </button>
+                    }
+                </form>
+            }
+            catch(Exception ex)
+            {
+                <p>[USER-TIME-LINE.CSHTML] Exception Message: @ex.Message --- Exception Location: @ex.TargetSite</p>
+            }
+        }
+    </div>
     <ul id="messagelist" class="cheeps">
     @if (Model.Cheeps.Any())
     {
         @foreach (var cheep in Model.Cheeps)
         {
-            if (cheep.Author.UserName.Equals(routeName.ToString()))
+            if (cheep.Author.UserName.Equals(routeName))
             {
                 <li>
                     <p>
@@ -35,12 +71,19 @@
     </ul>
 
     <h3> Following </h3>
-    <ul class="cheeps"> @* Change class name to something more universal *@
+    <ul class="cheeps"> @* Change class name to something more universal. Was just given same name as above *@
         @if (Model.Following.Any())
         {
             @foreach (var follow in Model.Following)
             {
-                <h5>@follow.UserName</h5>
+                @if(SignInManager.IsSignedIn(User) && follow.UserName.Equals(User.Identity?.Name))
+                {
+                    <h5><a href="/@User.Identity?.Name">Your Genius Cheeps</a></h5>
+                }
+                else
+                {
+                    <h5><a href="/@follow.UserName">@follow.UserName</a></h5>
+                }
 
                 @*[TODO] Fix this! Part of ugly part*@
                 var followersCheepTask = await Model.GetTop4CheepsFromFollower(follow.UserName);
@@ -62,7 +105,14 @@
         }
         else
         {
-            <em>You currently aren't Following anyone.</em>
+            @if(routeName == username)
+            {
+                <em>You currently aren't Following anyone.</em>
+            } 
+            else
+            {
+                <em>@routeName currently isn't Following anyone.</em>
+            }
         }
     </ul>
 
@@ -80,7 +130,14 @@
         }
         else
         {
-            <em>You currently have no Followers :(</em>
+            @if(routeName == username)
+            {
+                <em>You currently have no Followers :(</em>
+            } 
+            else
+            {
+                <em>@routeName currently has no Followers. Haha.</em>
+            }
         }
     </ul>
 </div>

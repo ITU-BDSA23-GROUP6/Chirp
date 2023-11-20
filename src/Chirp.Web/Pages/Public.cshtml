@@ -44,7 +44,7 @@
                         @if(SignInManager.IsSignedIn(User) && username != null && username != cheep.Author.UserName)
                         {
                             var user = Model.SignedInAuthor;
-
+                            @* [PACK INTO PARTIAL #1] *@
                             try
                             {
                                 <form method="post" asp-page-handler="Follow">

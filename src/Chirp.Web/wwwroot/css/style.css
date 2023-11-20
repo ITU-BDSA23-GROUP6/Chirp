@@ -228,13 +228,25 @@ li.topic {
   min-height: 20px;
 }
 
-div.page ul.cheeps li .following-button {
-  position: absolute;
-  top: 5px;
-  right: 5px;
+.following-button
+{
   background: #FFFF;
   border-color: #1111;
   border: 2px;
   border-radius: 8px;
   padding: 0;
+}
+
+div.page ul.cheeps li .following-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+
+
+
+.user-time-line-header-container
+{
+  display: flex;
+  background: #cc6e6ead;
 }

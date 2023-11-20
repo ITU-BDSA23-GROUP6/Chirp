@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 
 using DBContext;
+using Chirp.FDTO;
 using Chirp.Models;
 using Chirp.Interfaces;
 
@@ -19,6 +20,8 @@ public class UserTimelineModel : PageModel
     public List<Cheep> Cheeps { get; set; } = null!;
     public List<Author> Followers { get; set; } = null!;
     public List<Author> Following { get; set; } = null!;
+    public Author SignedInUser { get; set; } = null!;
+    public Author TimelineUser { get; set; } = null!;
     public int cheepsPerPage;
     public int totalCheeps;
     public UserTimelineModel(UserManager<Author> userManager, SignInManager<Author> signInManager, IAuthorRepository authorRepository, ICheepRepository cheepRepository, ILogger<UserTimelineModel> logger)
@@ -37,6 +40,9 @@ public class UserTimelineModel : PageModel
     {
         try
         {
+            // 00. Variables:
+            string? signedInUser = User.Identity?.Name;
+
             // 01. Cheeps:
             IEnumerable<Cheep> cheeps = await _cheepRepository.GetCheepsFromAuthor(author, page);
             Cheeps = cheeps.ToList();
@@ -52,13 +58,63 @@ public class UserTimelineModel : PageModel
             // 04. Following:
             IEnumerable<Author> following = await _authorRepository.GetAuthorFollowing(author);
             Following = following.ToList();
+
+            // 05. Signed In User:
+            if(_signInManager.IsSignedIn(User) && signedInUser != null && author != signedInUser)
+            {
+                TimelineUser = await _authorRepository.GetAuthorByName(author);
+                SignedInUser = await _authorRepository.GetAuthorByName(signedInUser);
+                _logger.LogInformation("[USERTIMELINE] User was signed in");
+            }
         }
         catch(Exception ex)
         {
-            throw new Exception($"Exception: {ex.Message}");    // Propogate the exception
+            TempData["ErrorMessage"] = ex.StackTrace;
+            return RedirectToPage("/Error");
         }
 
         return Page();
+    }
+
+    [BindProperty]
+    public bool IsFollow { get; set; }
+    [BindProperty]
+    public string TargetAuthorUserName { get; set; }
+    public async Task<IActionResult> OnPostFollow([FromQuery] int? page = 0)
+    {
+        ModelState.Clear();
+
+        try
+        {
+            if(ModelState.IsValid) {
+                if(_signInManager.IsSignedIn(User))
+                {
+                    FollowersDTO followersDTO = new(User.Identity.Name, TargetAuthorUserName);  // [TODO] Remove warning but we still want it to be caught by exception.
+
+                    if(IsFollow) 
+                    {
+                        await _authorRepository.Follow(followersDTO);
+                    }
+                    else
+                    {                        
+                        await _authorRepository.Unfollow(followersDTO);
+                    }
+                } 
+                else if(SignedInUser == null)
+                {
+                    throw new Exception("[USER-TIME-LINE.CSHTML.CS] The 'SignedInUser' variable was NULL");
+                }
+
+                return RedirectToPage("UserTimeline", new { page });
+            } 
+        }
+        catch(Exception ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+            return RedirectToPage("/Error");
+        }
+
+        return RedirectToPage("UserTimeline", new { page });
     }
 
     // [TODO] Change this and clean up. Simplist solution - but ugly af.

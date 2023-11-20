@@ -19,7 +19,6 @@ public class PublicModel : PageModel
     private readonly IAuthorRepository _authorRepository;
     private readonly UserManager<Author> _userManager;
     private readonly SignInManager<Author> _signInManager;
-    
 
     public List<Cheep> Cheeps { get; set; } = null!;
     public Author SignedInAuthor { get; set; } = null!;
@@ -44,35 +43,22 @@ public class PublicModel : PageModel
     {   
         int pgNum = page ?? 0;
         
-        _logger.LogInformation($"[ON-GET] Page Number: {pgNum}");
-
         IEnumerable<Cheep> cheeps = await _cheepRepository.GetCheeps(pgNum);
         Cheeps = cheeps.ToList();
-        _logger.LogInformation($"[ON-GET] Number of Cheeps: {Cheeps?.Count}");
 
         IEnumerable<Cheep> allCheeps = await _cheepRepository.GetAllCheeps();
         totalCheeps = allCheeps.Count();
-        _logger.LogInformation($"[ON-GET] Total Number of Cheeps: {totalCheeps}");
 
-        /*
-            @ The following process uses Eager Loading.
-            @ This is a technique used when dealing with having to include values which are located in
-              separate Tables.
-        
-        */
         if(_signInManager.IsSignedIn(User))
         {
-            _logger.LogInformation($"[ON GET] User: {User.Identity?.Name} is logged in");
-
             try
             {
                 SignedInAuthor = await _authorRepository.GetAuthorByName(User.Identity?.Name);
-
-                _logger.LogInformation("[ON GET] SignedInAuthor assigned a value");
             }
             catch(Exception ex)
             {
-                _logger.LogInformation($"[EXCEPTION] {ex.Message}");
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToPage("/Error");
             }
         }
 
@@ -114,9 +100,9 @@ public class PublicModel : PageModel
         try
         {
             if(ModelState.IsValid) {
-                if(_signInManager.IsSignedIn(User) && User.Identity != null)
+                if(_signInManager.IsSignedIn(User))
                 {
-                    FollowersDTO followersDTO = new(User.Identity.Name, TargetAuthorUserName);
+                    FollowersDTO followersDTO = new(User.Identity.Name, TargetAuthorUserName);  // [TODO] Remove warning but we still want it to be caught by exception.
 
                     if(IsFollow) 
                     {
