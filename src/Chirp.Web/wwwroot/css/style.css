@@ -230,10 +230,8 @@ li.topic {
 
 .following-button
 {
-  background: #FFFF;
-  border-color: #1111;
-  border: 2px;
-  border-radius: 8px;
+  background: none;
+  border: none;
   padding: 0;
 }
 
