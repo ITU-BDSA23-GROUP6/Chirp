@@ -76,18 +76,18 @@
         function orderCheeps(orderBy) {
             console.log('Ordering Cheeps by:', orderBy);
 
-            var cheepContainer = $('#cheeps-container');
+            var cheepContainer = $('#cheepsContainer');
 
             $.ajax({
                 url: '@Url.Page("/Public")?handler=OrderCheepsBy&orderBy=' + orderBy,
                 method: 'GET',
                 success: function (data) {
                     console.log('AJAX success! Received data:', data);
-                    $('#cheeps-container').html(data);
+                    $('#cheepsContainer').html(data);
                 },
                 error: function (xhr, status, error) {
                     alert('Failed to retrieve Cheeps');
-                    $('#cheeps-container').html("[AJAX Error] Cheeps could not located");
+                    $('#cheepsContainer').html("[AJAX Error] Cheeps could not located");
                 }
             });
         }
