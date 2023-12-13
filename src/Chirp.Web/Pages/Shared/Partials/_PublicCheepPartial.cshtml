@@ -73,8 +73,9 @@
                                 </form>
                             </div>
 
-                            <div class="cheep-func-grid-box">
-                                <form id="likeDis" method="post" asp-page-handler="DislikeOrLike">
+                            <div class="cheep-func-grid-box"> 
+                                <form id="likeDisForm" method="post" asp-page-handler="DislikeOrLike">
+                                    @Html.AntiForgeryToken()
                                     <input type="hidden" asp-for="TargetCheepId" value="@cheep.CheepId" />
                                     <input type="hidden" asp-for="TargetAuthorUserName" value="@UserName" />
                                     <button type="submit" name="likeDis" value="like" class="form-input-button btn" style="@(authorOpinionOfCheep == Enums.ACO.AuthorCheepOpinion.DISLIKES ? "opacity: 0.5;" : "opacity: 1.0;")">

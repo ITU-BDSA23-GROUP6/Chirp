@@ -62,8 +62,6 @@ public class PublicModel : PageModel
 
     public async Task<IActionResult> OnGet([FromQuery] int? page = 0)
     {   
-        _logger.LogInformation("[STANDARD ON-GET]");
-
         int pgNum = page ?? 0;
         
         try
@@ -153,29 +151,45 @@ public class PublicModel : PageModel
         return RedirectToPage("Public", new { page });
     }
 
-    public async Task<IActionResult> OnPostDislikeOrLike([FromQuery] int? page = 0)
+    public async Task<IActionResult> OnPostDislikeOrLike([FromQuery] int? page = 0, [FromQuery] string? opinion = null)
     {
         ModelState.Clear();
 
         try
         {
             if(ModelState.IsValid) {
+                _logger.LogInformation($"[OnPostDislikeOrLike] Value for CheepId {TargetCheepId} --- Value for Author: {TargetAuthorUserName}");
+
                 if(_signInManager.IsSignedIn(User))
-                {   
-                    var likeDislikeValue = Request.Form["likeDis"];
-                    if(string.IsNullOrEmpty(likeDislikeValue)) throw new Exception("File: 'Public.cshtml.cs' - Method: 'OnPostDislikeOrLike()' - Message: Value retrieved from Request Form was NULL");
+                {
+                    var likeDislikeValue = opinion;
+                    if(string.IsNullOrEmpty(likeDislikeValue)) { throw new Exception("File: 'Public.cshtml.cs' - Method: 'OnPostDislikeOrLike()' - Message: Value retrieved from Request Form was NULL"); }
 
                     if(likeDislikeValue == "like")
                     {
+                        _logger.LogInformation("[OnPostDislikeOrLike] Entered Like");
                         await _cheepRepository.GiveOpinionOfCheep(true, TargetCheepId, TargetAuthorUserName);
                     }
                     else if(likeDislikeValue == "dislike")
                     {
+                        _logger.LogInformation("[OnPostDislikeOrLike] Entered Dislike");
                         await _cheepRepository.GiveOpinionOfCheep(false, TargetCheepId, TargetAuthorUserName);
+                    } else
+                    {
+                        return RedirectToPage("Public", new { page });  // [TODO] Add alert trigger: 'failed'
                     }
-                } 
+                }
 
-                return RedirectToPage("Public", new { page });
+                _logger.LogInformation("[OnPostDislikeOrLike] Success! Variables status");
+                _logger.LogInformation($"[OnPostDislikeOrLike] Cheeps: {Cheeps.Count} --- SignedInAuthor: {SignedInAuthor.UserName}");
+
+                return new PartialViewResult {
+                    ViewName = "./Shared/Partials/_PublicCheepPartial",
+                    ViewData = new ViewDataDictionary<PublicModel>(ViewData)
+                    {
+                        Model = this
+                    }
+                };
             } 
             else if(!ModelState.IsValid)
             {
@@ -185,8 +199,8 @@ public class PublicModel : PageModel
         }
         catch(Exception ex)
         {
-            string exceptionInfo = "File: Public.cshtml.cs - Method: 'OnPostDislikeOrLike()' - Stack Trace: ";
-            TempData["ErrorMessage"] = exceptionInfo += ex.StackTrace;
+            string exceptionInfo = $"File: Public.cshtml.cs - Method: 'OnPostDislikeOrLike()' - Message: {ex.Message} - Stack Trace: {ex.StackTrace}";
+            TempData["ErrorMessage"] = exceptionInfo;
             return RedirectToPage("/Error");
         }
 
@@ -206,10 +220,6 @@ public class PublicModel : PageModel
             // 01. Get Cheeps in a specified order:
             var cheeps = await _cheepRepository.GetCheeps(pgNum, orderByVal);
             Cheeps = cheeps.ToList();
-
-            var topCheep = Cheeps.FirstOrDefault();
-
-            _logger.LogInformation($"'orderByVal': {orderByVal} ---> Top Cheep -- UserName: {topCheep.Author} | Likes: {topCheep.LikesAndDislikes.Likes.Count}");
             
             // 02. Get the total number of Cheeps [used for Pagination]:
             TotalCheeps = await _cheepRepository.GetTotalNumberOfCheeps();

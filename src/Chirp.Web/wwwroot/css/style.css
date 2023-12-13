@@ -277,12 +277,12 @@ div.page ul.cheeps li .cheep-wrapper .cheep-func-wrapper .cheep-func-grid-box /*
   object-fit: cover; 
 }
 
-div.page ul.cheeps li .cheep-wrapper .cheep-func-wrapper .cheep-func-grid-box #likeDis {
+div.page ul.cheeps li .cheep-wrapper .cheep-func-wrapper .cheep-func-grid-box #likeDisForm {
   display: flex;
   gap: 5px;
 }
 
-div.page ul.cheeps li .cheep-wrapper .cheep-func-wrapper .cheep-func-grid-box #likeDis button {
+div.page ul.cheeps li .cheep-wrapper .cheep-func-wrapper .cheep-func-grid-box #likeDisForm button {
   flex: 1;
 }
 
@@ -299,7 +299,7 @@ div.page ul.cheeps li .cheep-wrapper .cheep-number-likes-dislikes-wrapper
   /* [TESTING] background: red;  */
 }
 
-div.page ul.cheeps li .cheep-wrapper .cheep-func-grid-box #likeDis button
+div.page ul.cheeps li .cheep-wrapper .cheep-func-grid-box #likeDisForm button
 {
   display: flex;
   flex-direction: column;

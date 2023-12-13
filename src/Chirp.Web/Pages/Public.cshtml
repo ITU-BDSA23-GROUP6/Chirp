@@ -69,10 +69,11 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
+        // [TODO] Convert to AJAX
         const toggle = () => { document.querySelector('.dropdown-wrapper').classList.toggle('active'); };
         document.querySelector('.toggle').addEventListener("click", toggle);
 
-
+        // Order Cheeps Response AJAX
         function orderCheeps(orderBy) {
             console.log('Ordering Cheeps by:', orderBy);
 
@@ -91,5 +92,33 @@
                 }
             });
         }
+
+        //
+        $('#likeDisForm').submit(function (e) {
+            e.preventDefault();
+
+            console.log('Form submission clicked!');
+
+            var formData = new FormData($(this)[0]);
+            var likeDislikeValue = $(this).find('button[type="submit"]:focus').val();
+
+            $.ajax({
+                url: '@Url.Page("/Public")?handler=DislikeOrLike&opinion=' + likeDislikeValue,
+                type: 'POST',
+                beforeSend: function (xhr) {  
+                    xhr.setRequestHeader("XSRF-TOKEN",  $('input:hidden[name="__RequestVerificationToken"]').val());  
+                },  
+                data: formData,
+                processData: false,  
+                contentType: false,  
+                success: function (data) {
+                    console.log('AJAX success! Received data:', data);
+                    $('#cheepsContainer').html(data);
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX error:', status, error);
+                }
+            });
+        });
     </script>
 }
