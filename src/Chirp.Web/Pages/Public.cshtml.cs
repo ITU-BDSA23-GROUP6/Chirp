@@ -66,12 +66,7 @@ public class PublicModel : PageModel
         
         try
         {
-            IEnumerable<Cheep> cheeps = await _cheepRepository.GetCheeps(pgNum, "");
-            Cheeps = cheeps.ToList();
-
-            TotalCheeps = await _cheepRepository.GetTotalNumberOfCheeps();
-            
-            await GetCheepInformation();
+            await GetCheepInformation(pgNum, "timestamp");
         } 
         catch(Exception ex)
         {
@@ -151,9 +146,12 @@ public class PublicModel : PageModel
         return RedirectToPage("Public", new { page });
     }
 
-    public async Task<IActionResult> OnPostDislikeOrLike([FromQuery] int? page = 0, [FromQuery] string? opinion = null)
+    public async Task<IActionResult> OnPostDislikeOrLike([FromQuery] int? page = 0, [FromQuery] string? opinion = null, [FromQuery] string? orderBy = "timestamp")
     {
         ModelState.Clear();
+
+        int pgNum = page ?? 0;
+        string orderByVal = orderBy ?? "timestamp";
 
         try
         {
@@ -180,8 +178,7 @@ public class PublicModel : PageModel
                     }
                 }
 
-                _logger.LogInformation("[OnPostDislikeOrLike] Success! Variables status");
-                _logger.LogInformation($"[OnPostDislikeOrLike] Cheeps: {Cheeps.Count} --- SignedInAuthor: {SignedInAuthor.UserName}");
+                await GetCheepInformation(pgNum, orderByVal);
 
                 return new PartialViewResult {
                     ViewName = "./Shared/Partials/_PublicCheepPartial",
@@ -216,16 +213,7 @@ public class PublicModel : PageModel
 
         try
         {
-
-            // 01. Get Cheeps in a specified order:
-            var cheeps = await _cheepRepository.GetCheeps(pgNum, orderByVal);
-            Cheeps = cheeps.ToList();
-            
-            // 02. Get the total number of Cheeps [used for Pagination]:
-            TotalCheeps = await _cheepRepository.GetTotalNumberOfCheeps();
-
-            // 03. Get Author Opinion of Cheeps and or Likes-&-Dislikes:
-            await GetCheepInformation();
+            await GetCheepInformation(pgNum, orderByVal);
 
             return new PartialViewResult {
                 ViewName = "./Shared/Partials/_PublicCheepPartial",
@@ -244,13 +232,24 @@ public class PublicModel : PageModel
     }
 
 
-    public async Task GetCheepInformation()
+    public async Task GetCheepInformation(int pgNum = 0, string orderByVal = "timestamp")
     {
-        CheepOpinionsInfo = new Dictionary<int, CheepOpinionDTO>();
-        bool IsUserSignedIn = _signInManager.IsSignedIn(User);
-
         try
         {
+            // 01. Retrieve the Cheeps:
+            IEnumerable<Cheep> cheeps = await _cheepRepository.GetCheeps(pgNum, orderByVal);
+            Cheeps = cheeps.ToList();
+
+            // 02. Retrieve the Authors Opinions AND-OR Likes and Dislikes:
+            CheepOpinionsInfo = new Dictionary<int, CheepOpinionDTO>();
+            
+            // 03. Get the total number of Cheeps [used to calculate pagination]:
+            TotalCheeps = await _cheepRepository.GetTotalNumberOfCheeps();
+
+            // 04. Determine whether or not a User is signed in:
+            bool IsUserSignedIn = _signInManager.IsSignedIn(User);
+
+
             if(IsUserSignedIn)
             {
                 UserName = User.Identity?.Name;

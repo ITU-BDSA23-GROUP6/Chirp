@@ -101,9 +101,13 @@
 
             var formData = new FormData($(this)[0]);
             var likeDislikeValue = $(this).find('button[type="submit"]:focus').val();
+            var orderByValue = $('input[name="test"]:checked').val();   
+
+            console.log('Order by: ', orderByValue);
+            console.log('Like or Dislike: ', likeDislikeValue);
 
             $.ajax({
-                url: '@Url.Page("/Public")?handler=DislikeOrLike&opinion=' + likeDislikeValue,
+                url: '@Url.Page("/Public")?handler=DislikeOrLike&opinion=' + likeDislikeValue + '&orderBy=' + orderByValue,
                 type: 'POST',
                 beforeSend: function (xhr) {  
                     xhr.setRequestHeader("XSRF-TOKEN",  $('input:hidden[name="__RequestVerificationToken"]').val());  
