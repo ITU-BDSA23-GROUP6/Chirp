@@ -35,6 +35,7 @@
 
                 <div class="cheep-text-wrapper">
                     <p>@cheep.Text</p>
+                    <small>@cheep.CheepId</small> @* [TODO] Remove *@
                 </div>
 
                 <div class="cheep-number-likes-dislikes-wrapper">
@@ -78,10 +79,10 @@
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" asp-for="TargetCheepId" value="@cheep.CheepId" />
                                     <input type="hidden" asp-for="TargetAuthorUserName" value="@UserName" />
-                                    <button type="submit" name="likeDis" value="like" class="form-input-button btn" style="@(authorOpinionOfCheep == Enums.ACO.AuthorCheepOpinion.DISLIKES ? "opacity: 0.5;" : "opacity: 1.0;")">
+                                    <button type="submit" name="likeBtn" value="like" class="form-input-button btn" style="@(authorOpinionOfCheep == Enums.ACO.AuthorCheepOpinion.DISLIKES ? "opacity: 0.5;" : "opacity: 1.0;")">
                                         <img src="/images/thumbup.svg" alt="Like"></img>
                                     </button>
-                                    <button type="submit" name="likeDis" value="dislike" class="form-input-button btn" style="@(authorOpinionOfCheep == Enums.ACO.AuthorCheepOpinion.LIKES ? "opacity: 0.5;" : "opacity: 1.0;")">
+                                    <button type="submit" name="dislikeBtn" value="dislike" class="form-input-button btn" style="@(authorOpinionOfCheep == Enums.ACO.AuthorCheepOpinion.LIKES ? "opacity: 0.5;" : "opacity: 1.0;")">
                                         <img src="/images/thumbdown.svg" alt="Dislike"></img>
                                     </button>
                                 </form>

@@ -35,9 +35,9 @@ public class PublicModel : PageModel
     // 03. Bind properties:
     [BindProperty, Required(ErrorMessage="Cheep must be between 1-to-160 characters"), StringLength(160, MinimumLength = 1)]
     public string CheepText { get; set; } = "";
-    [BindProperty]
+    [BindProperty(SupportsGet = true)]
     public bool IsFollow { get; set; } = false;
-    [BindProperty]
+    [BindProperty(SupportsGet = true)]
     public string TargetAuthorUserName { get; set; } = null!;
     [BindProperty]
     public int TargetCheepId { get; set; }
@@ -156,6 +156,8 @@ public class PublicModel : PageModel
         try
         {
             if(ModelState.IsValid) {
+                if(string.IsNullOrEmpty(TargetAuthorUserName)) _logger.LogInformation("TargetAuthorUserName was empty or NULL");
+
                 _logger.LogInformation($"[OnPostDislikeOrLike] Value for CheepId {TargetCheepId} --- Value for Author: {TargetAuthorUserName}");
 
                 if(_signInManager.IsSignedIn(User))
