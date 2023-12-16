@@ -73,7 +73,7 @@
         const toggle = () => { document.querySelector('.dropdown-wrapper').classList.toggle('active'); };
         document.querySelector('.toggle').addEventListener("click", toggle);
 
-        // Order Cheeps Response AJAX
+        // #1: Re-configure order of Cheeps:
         function orderCheeps(orderBy) {
             console.log('Ordering Cheeps by:', orderBy);
 
@@ -93,23 +93,51 @@
             });
         }
 
-        //
+        // #2: Follow-&-Unfollow POST Request AJAX
+        $(document).on('submit', '#followForm', function (e) {
+            e.preventDefault();
+
+            console.log('Form "Follow" submission clicked!');
+
+
+            var formData = new FormData($(this)[0]);   
+            var followOrUnfollow = $(this).find('button[type="submit"]:focus').val()
+            var orderByValue = $('input[name="test"]:checked').val();
+
+            console.log('Order by: ',orderByValue);
+            console.log('Follow or Unfollow: ',followOrUnfollow);  
+
+            $.ajax({
+                url: '@Url.Page("/Public")?handler=Follow&orderBy' + orderByValue,
+                type: 'POST',
+                beforeSend: function (xhr) {  
+                    xhr.setRequestHeader("XSRF-TOKEN",  $('input:hidden[name="__RequestVerificationToken"]').val());  
+                },  
+                data: formData,
+                processData: false,  
+                contentType: false,  
+                success: function (data) {
+                    console.log('AJAX success! Received data:', data);
+                    $('#cheepsContainer').html(data);
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX error:', status, error);
+                }
+            });
+
+        });
+
+        // #3: Like-&-Dislike POST Request AJAX
         $(document).on('submit', '#likeDisForm', function (e) {
             e.preventDefault();
             e.stopPropagation();
 
-            console.log('Form submission clicked!');
+            console.log('Form "DislikeOrLike" submission clicked!');
 
-            var formData = new FormData($(this)[0]);
-
-            @* var formData = new FormData($(this).closest('form')[0]); *@
-            
+            var formData = new FormData($(this)[0]);            
             var likeDislikeValue = $(this).find('button[type="submit"]:focus').val()
             var orderByValue = $('input[name="test"]:checked').val();
 
-            for (var pair of formData.entries()) {
-                console.log(pair[0] + ', ' + pair[1]);
-            }
             console.log('Order by: ',orderByValue);
             console.log('Like or Dislike: ',likeDislikeValue);
 

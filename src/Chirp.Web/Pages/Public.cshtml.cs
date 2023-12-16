@@ -109,9 +109,12 @@ public class PublicModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostFollow([FromQuery] int? page = 0)
+    public async Task<IActionResult> OnPostFollow([FromQuery] int? page = 0, [FromQuery] string? orderBy = null)
     {
         ModelState.Clear();
+
+        int pgNum = page ?? 0;
+        string orderByVal = orderBy ?? "timestamp";
 
         try
         {
@@ -129,12 +132,16 @@ public class PublicModel : PageModel
                         await _authorRepository.Unfollow(followersDTO);
                     }
                 } 
-                else if(SignedInAuthor == null)
-                {
-                    throw new Exception("[PUBLIC.CSHTML.CS] The 'SignedInAuthor' variable was NULL");
-                }
 
-                return RedirectToPage("Public", new { page });
+                await GetCheepInformation(pgNum, orderByVal);
+
+                return new PartialViewResult {
+                    ViewName = "./Shared/Partials/_PublicCheepPartial",
+                    ViewData = new ViewDataDictionary<PublicModel>(ViewData)
+                    {
+                        Model = this
+                    }
+                };
             } 
         }
         catch(Exception ex)
@@ -143,10 +150,10 @@ public class PublicModel : PageModel
             return RedirectToPage("/Error");
         }
 
-        return RedirectToPage("Public", new { page });
+        return RedirectToPage("Public", new { page });  // [TODO]: Add Alter - NOT Exception
     }
 
-    public async Task<IActionResult> OnPostDislikeOrLike([FromQuery] int? page = 0, [FromQuery] string? opinion = null, [FromQuery] string? orderBy = "timestamp")
+    public async Task<IActionResult> OnPostDislikeOrLike([FromQuery] int? page = 0, [FromQuery] string? opinion = null, [FromQuery] string? orderBy = null)
     {
         ModelState.Clear();
 
@@ -156,10 +163,6 @@ public class PublicModel : PageModel
         try
         {
             if(ModelState.IsValid) {
-                if(string.IsNullOrEmpty(TargetAuthorUserName)) _logger.LogInformation("TargetAuthorUserName was empty or NULL");
-
-                _logger.LogInformation($"[OnPostDislikeOrLike] Value for CheepId {TargetCheepId} --- Value for Author: {TargetAuthorUserName}");
-
                 if(_signInManager.IsSignedIn(User))
                 {
                     var likeDislikeValue = opinion;
@@ -167,17 +170,12 @@ public class PublicModel : PageModel
 
                     if(likeDislikeValue == "like")
                     {
-                        _logger.LogInformation("[OnPostDislikeOrLike] Entered Like");
                         await _cheepRepository.GiveOpinionOfCheep(true, TargetCheepId, TargetAuthorUserName);
                     }
                     else if(likeDislikeValue == "dislike")
                     {
-                        _logger.LogInformation("[OnPostDislikeOrLike] Entered Dislike");
                         await _cheepRepository.GiveOpinionOfCheep(false, TargetCheepId, TargetAuthorUserName);
-                    } else
-                    {
-                        return RedirectToPage("Public", new { page });  // [TODO] Add alert trigger: 'failed'
-                    }
+                    } 
                 }
 
                 await GetCheepInformation(pgNum, orderByVal);
@@ -195,6 +193,8 @@ public class PublicModel : PageModel
                 TempData["ErrorMessage"] = "File: 'Public.cshtml.cs' - Method: 'OnPostDislikeOrLike()' - Message: ModelState was Invalid";
                 return RedirectToPage("/Error");
             }
+
+            return RedirectToPage("Public", new { page });  // [TODO] // [TODO]: Add Alter - NOT Exception
         }
         catch(Exception ex)
         {
@@ -250,7 +250,6 @@ public class PublicModel : PageModel
 
             // 04. Determine whether or not a User is signed in:
             bool IsUserSignedIn = _signInManager.IsSignedIn(User);
-
 
             if(IsUserSignedIn)
             {
